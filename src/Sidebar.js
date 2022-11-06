@@ -12,15 +12,20 @@ import { actionTypes } from "./reducer";
 import UseWindowDimensions from "./UseWindowDimensions";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import Loader from "./Loader";
+import { Auth, Database } from '@three0dev/js-sdk';
+import { env } from "./env";
+import { SettingsPowerSharp } from "@material-ui/icons";
 
 function Sidebar() {
+  const [roomsRef, setRoomsRef] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [toggler, setToggler] = useState(false);
   const [sidebarBool, setsidebarBool] = useState(true);
   const [{ togglerState }, dispatch] = useStateValue();
   const [search, setSearch] = useState([]);
   const [input, setInput] = useState("");
-  const [logout, setLogout] = useState(false);
+  
+  // const [logout, setLogout] = useState(false); // previous
   const { width } = UseWindowDimensions();
   const matcher = (s, values) => {
     const re = RegExp(`.*${s.toLowerCase().split("").join(".*")}.*`);
@@ -30,10 +35,17 @@ function Sidebar() {
     setsidebarBool(false);
     setInput(e.target.value);
   };
-  const exitApp = () => {
-    localStorage.removeItem("uid");
+  const exitApp = async () => {
+    //three0
+    alert("logging out inna bit");
+    Auth.logout();
     window.location.reload();
-    setLogout(true);
+    //three0
+    
+    // previous
+    // localStorage.removeItem("uid");
+    // window.location.reload();
+    // setLogout(true);
   };
   useEffect(() => {
     if (rooms.length > 0) {
@@ -45,8 +57,17 @@ function Sidebar() {
   }, [input]);
 
   useEffect(() => {
-    const unsubscribe = db
-      .collection("rooms")
+    // const unsubscribe = Database.KeyValue(env.chatAppDBURL).then((keyVal) => {
+    //   let roomObJs = Object.values(keyVal.getAll());
+    //   setRooms(
+    //     roomObJs.map((room_) => ({
+    //       id: room_.id,
+    //       data: room_,
+    //     }))
+    //   );
+    // });
+
+      const unsubscribe = db.collection("rooms")
       .orderBy("timestamp", "desc")
       .onSnapshot((snapshot) => {
         setRooms(
@@ -56,11 +77,12 @@ function Sidebar() {
           }))
         );
       });
+
     return () => {
       unsubscribe();
     };
   }, []);
-
+  //console.log(rooms);
   useEffect(() => {
     setToggler(!toggler);
   }, [togglerState]);
@@ -101,10 +123,10 @@ function Sidebar() {
               <p className="sidebar__greeting mobile__tag">
                 {" "}
                 <a
-                  href="https://alii13.github.io/portfolio/"
-                  style={{ color: "white" }}
+                  href="https://three0dev.com/"
+                  style={{ color: "purple" }}
                 >
-                  Made with ♥ by <span style={{ color: "white" }}>Ali</span>
+                  Made with <span style={{ color: "purple" }}>three0</span>
                 </a>
               </p>
               <div className="sidebar__headerRight">
@@ -155,8 +177,8 @@ function Sidebar() {
             <Avatar src={photoURL} />{" "}
             <p className="sidebar__greeting">
               {" "}
-              <a href="https://alii13.github.io/portfolio/">
-                Made with ♥ by <span style={{ color: "blue" }}>Ali</span>
+              <a href="https://three0dev.com/">
+                Made with <span style={{ color: "purple" }}>three0</span>
               </a>
             </p>
             <div className="sidebar__headerRight">

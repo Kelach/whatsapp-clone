@@ -9,30 +9,74 @@ import AddCircleIcon from "@material-ui/icons/AddCircle";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import firebase from "firebase";
 import { password } from "./constants";
+import { Database, timestamp } from "@three0dev/js-sdk";
+import { env } from './env';
+
 function SidebarChat(props) {
   const [seed, setSeed] = useState("");
+  const [roomsRef, setRoomsRef] = useState();
   const { addNewChatVal, name, id } = props;
   const [messages, setMessages] = useState([]);
   const [{ togglerState }, dispatch] = useStateValue();
 
   useEffect(() => {
     if (id) {
-      db.collection("rooms")
-        .doc(id)
-        .collection("messages")
-        .orderBy("timestamp", "desc")
-        .onSnapshot((snapshot) =>
-          setMessages(snapshot.docs.map((doc) => doc.data()))
-        );
-    }
+
+      // sets room if id is given
+      // three0
+      Database.KeyValue(env.chatAppDBURL).then((keyVal) => {
+        setRoomsRef(keyVal);
+        // remove try block during code cleanup 
+        try {
+          // alert("changing chat display");
+          setMessages(keyVal.database.get(id).messages);
+
+        } catch (error){
+          if (error instanceof TypeError){
+           console.log("adding room", id);
+           
+           keyVal.set(id, {
+            id : id,
+            name: name,
+            timestamp: Database.timestamp(),
+            createdAt: Database.timestamp(),
+            messages: []
+           });
+           setMessages([]);
+          } else{
+            console.log(error)
+          }
+        }
+        keyVal.onChange(() => {
+          // alert("setting sidebar chats");
+          setMessages(keyVal.get(id).messages)
+        })
+      })
+    }  
+      // //three0
+      // console.log(id);
+      // db.collection("rooms")
+      //   .doc(id)
+      //   .collection("messages")
+      //   .orderBy("timestamp", "desc")
+      //   .onSnapshot((snapshot) =>
+      //     setMessages(snapshot.docs.map((doc) => doc.data()))
+      //   );
   }, []);
 
   useEffect(() => {
     setSeed(Math.floor(Math.random() * 5000));
   }, []);
+
+
   const deleteRoom = () => {
     const passwordVerify = prompt("Enter Admin Password to delete Room");
     if (passwordVerify == password) {
+
+      // three0
+      roomsRef.database.del(id);
+      // three0
+      
       db.collection("rooms")
         .doc(id)
         .delete()
@@ -46,13 +90,34 @@ function SidebarChat(props) {
       alert("You are not authorised to delete rooms");
     }
   };
-
   const createChat = () => {
     const roomName = prompt("Please enter name for chat");
     if (roomName && roomName.length >= 20) {
       return alert("enter a shorter name for the room");
     }
     if (roomName) {
+
+      // three0
+
+      // trying to add and delete new rooms.
+      
+      // const payload = {
+      //   id : id,
+      //   name: roomName,
+      //   timestamp: Database.timestamp(),
+      //   createdAt: Database.timestamp(),
+      //   messages: []
+      //     }
+      // console.log(id);
+      // localStorage.setItem("")
+      // roomsRef.set(id, payload);
+      // }
+
+      // createNewChat();
+        
+      // three0
+      // localStorage.setItem(roomName, roomName);
+
       db.collection("rooms").add({
         name: roomName,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -71,17 +136,17 @@ function SidebarChat(props) {
     <div className="sidebarChat">
       <Link to={`/rooms/${id}`} onClick={handleChat}>
         <div className="sidebarChat__wrapper">
-          <Avatar src={messages[0]?.photoURL} />
+          <Avatar src={messages[messages.length-1]?.photoURL} />
           <div className="sidebarChat__info">
             <h2 className="room__name">{name}</h2>
             <p className="sidebar__lastmessages__color">
               <span className="sidebar__lastMessageName">
                 {id != "" && messages.length > 0
-                  ? messages[0]?.name + ": "
+                  ? messages[messages.length-1]?.name + ": "
                   : "Loading: "}
               </span>
               {id != "" && messages.length > 0
-                ? messages[0]?.message
+                ? messages[messages.length-1]?.message
                 : "Start a new chat"}
             </p>
           </div>
