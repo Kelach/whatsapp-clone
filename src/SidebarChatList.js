@@ -4,6 +4,7 @@ import "./SidebarChatList.css";
 function SidebarChatList(props) {
   const { rooms, dr } = props;
   console.log(dr);
+  console.log("wewewe");
   return (
     <div class="sidebar__chatList">
       <div className="sidebar__chats">

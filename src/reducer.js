@@ -22,7 +22,10 @@ const reducer = (state, action) => {
       localStorage.setItem("uid", action.uid);
       localStorage.setItem("displayName", action.displayName);
       localStorage.setItem("photoURL", action.photoURL);
-      console.log("session added to storage");
+      console.log("session added to storage", 
+      action.displayName, 
+      action.photoURL
+      );
       return {
         ...state,
         uid: action.uid,

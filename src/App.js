@@ -6,7 +6,11 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Login from "./Login";
 import { useStateValue } from "./StateProvider";
 import UseWindowDimensions from "./UseWindowDimensions";
+import { Auth } from '@three0dev/js-sdk';
 
+// work on messages position (put reciever messages on one side, 
+// and sender messages in another)
+// need to work on getting timestamps correctly formatted for dates
 function App() {
   const [{ user }, dispatch] = useStateValue();
   const { width } = UseWindowDimensions();
@@ -15,20 +19,21 @@ function App() {
       ? localStorage.getItem("uid")
       : null;
 
+  
   return (
     <div className="app">
-      {!user && !uid ? (
-        <Login />
+      {Auth.isLoggedIn() == false ? (
+        <Login/>
       ) : (
         <div className="app__body">
           <Router>
-            <Sidebar />
+            <Sidebar/>
             <Switch>
               <Route path="/rooms/:roomId">
-                <Chat />
+                <Chat/>
               </Route>
               <Route path="/">
-                <Chat />
+                <Chat/>
               </Route>
             </Switch>
           </Router>
