@@ -8,22 +8,24 @@ import { Auth } from '@three0dev/js-sdk';
 
 function Login() {
   const [{}, dispatch] = useStateValue();
-  const signIn = Auth.login;
+  const signIn = () => {
+    Auth.login()
+  }
   // const signIn = () => {
   //   auth
   //     .signInWithPopup(provider)
   //     .then((result) => {
   //       console.log(result.user);
-  //       dispatch({
-  //         type: actionTypes.SET_USER,
-  //         user: result.user,
-  //       });
-  //       dispatch({
-  //         type: actionTypes.SET_SESSION,
-  //         uid: result.user.uid,
-  //         displayName: result.user.displayName,
-  //         photoURL: result.user.photoURL,
-  //       });
+        // dispatch({
+        //   type: actionTypes.SET_USER,
+        //   user: result.user,
+        // });
+        // dispatch({
+        //   type: actionTypes.SET_SESSION,
+        //   uid: result.user.uid,
+        //   displayName: result.user.displayName,
+        //   photoURL: result.user.photoURL,
+        // });
   //     })
   //     .catch((err) => alert(err.message));
   // };

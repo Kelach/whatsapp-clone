@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Avatar, IconButton } from "@material-ui/core";
 // three0
-import { Database, Auth, KeyValue } from '@three0dev/js-sdk';
+import { Database, Auth } from '@three0dev/js-sdk';
 import { env } from './env';
 // three0
 import AttachFile from "@material-ui/icons/AttachFile";
@@ -22,6 +22,7 @@ import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
 import Linkify from "react-linkify";
 import { toHaveFormValues } from "@testing-library/jest-dom";
+import { MessageSharp } from "@material-ui/icons";
 
 function Chat() {
   const [seed, setSeed] = useState("");
@@ -33,7 +34,7 @@ function Chat() {
   const [roomsRef, setRoomsRef] = React.useState(null);
   // three0
   const [toggler, setToggler] = useState(true);
-  const displayName = localStorage.getItem("displayName");
+  const displayName = Auth.getAccountId().replace('.testnet', '  ');
   const [{ togglerState }, dispatch] = useStateValue();
   const [{ photoURL }] = useStateValue();
   const [emoji, setEmoji] = useState(false);
@@ -73,8 +74,7 @@ function Chat() {
       setEmoji(false);
     }
   };
-  //console.log(photoURL);
-  // console.log(messages);
+
   function getTimeZone() {
     var offset = new Date().getTimezoneOffset(),
       o = Math.abs(offset);
@@ -94,7 +94,6 @@ function Chat() {
     setSeed(Math.floor(Math.random() * 5000));
     if (roomId) {
       Database.KeyValue(env.chatAppDBURL).then((keyVal) => {
-        console.log("setting roomName");
         setRoomsRef(keyVal);
         try{
         setMessages(keyVal.database.get(roomId).messages);
@@ -105,7 +104,6 @@ function Chat() {
           // must add it to db, then try (to get messages) again
           // remove try block during code cleanup
           if (error instanceof TypeError){
-          console.log("adding new room", roomId);
           keyVal.set(roomId, {
             id : roomId,
             name: "roomName",
@@ -116,7 +114,7 @@ function Chat() {
           }
         }
         keyVal.onChange(() => {
-           // console.log("change detected");
+           console.log("change detected");
            setRoomName(keyVal.database.get(roomId).name); 
            setMessages(keyVal.database.get(roomId).messages);
          });
@@ -179,7 +177,6 @@ function Chat() {
 
 
   // firebase -> three0
-
   const sendMessage = async (e) => {
     // alert("you just sent a message");
     e.preventDefault();
@@ -222,24 +219,19 @@ function Chat() {
     }
     // }
   };
-    
-
   let blankObj = {};
   let TotalObj = [];
   if (messages.length > 0) {
+    // for( const message in messages)
 
+    // }
     let checkDate = "";
     let blankArray = [];
     let dateArray = [];
     messages.forEach(function (message, i) {
-      let messageDate = "321 OCT";
-
-      // firebase (date retrival)
-      // let messageDate = String(
-      //   new Date(message.timestamp?.toDate()).toUTCString()
-      // ).slice(5, 12);
-      // firebase (date retrival)
-
+      let messageDate = String(
+        new Date(message.timestamp)
+      ).slice(4, 11);
       if (dateArray.indexOf(messageDate) === -1) {
         dateArray.push(messageDate);
       }
@@ -247,14 +239,9 @@ function Chat() {
     //let tempObj={};
     var index = 0;
     messages.forEach(function (message, i) {
-
-      // firebase (date retrival)
-      // let messageDate = String(
-      //   new Date(message.timestamp?.toDate()).toUTCString()
-      // ).slice(5, 12);
-      // firebase (date retrival)
-
-      let messageDate = "123 OCT";
+      let messageDate = String(
+        new Date(message.timestamp)
+      ).slice(4, 11);
       // console.log((message.timestamp+new Date()?.getTimezoneOffset()))
       if (messageDate === dateArray[index] && i == messages.length - 1) {
         blankArray.push({
@@ -358,10 +345,7 @@ function Chat() {
               <p className="header__lastSeen">
                 last seen{" "}
                 {messages.length !== 0
-                    ? "Yesterday"
-                  // ? messages[messages.length - 1].timestamp
-                  //     ?.toDate()
-                  //     .toUTCString()
+                  ? new Date (messages[messages.length - 1].timestamp)
                   : "Loading"}
               </p>
             </div>
@@ -392,12 +376,9 @@ function Chat() {
               <p className="header__lastSeen">
                 last seen{" "}
                 {messages.length !== 0
-                     ? "Yesterday"
-                  // ? String(
-                  //     messages[messages.length - 1].timestamp
-                  //       ?.toDate()
-                  //       .toUTCString()
-                  //   ).slice(0, 22)
+                  ? String(
+                      new Date(messages[messages.length - 1].timestamp)
+                    ).slice(0, 22)
                   : "Loading"}
               </p>
             </div>
@@ -427,16 +408,14 @@ function Chat() {
                           parseInt(String(Object.keys(item)).slice(0, 2)) ? (
                             <div className="chat__body__daystamp">
                               <p className="chat__body__daystamp__title">
-                                {
-                                  ""
-                                /* {parseInt(
+                                {parseInt(
                                   String(Object.keys(item)).slice(0, 2)
                                 ) == parseInt(String(new Date().getDate()))
                                   ? "TODAY"
-                                  : Object.keys(item)} */}
+                                  : Object.keys(item)}
                               </p>
                             </div>
-                          ) : "this used to be null"} 
+                          ) : null}
                           <p
                             className={`chat__messages ${
                               e.name === displayName && "chat__reciever"
@@ -449,114 +428,106 @@ function Chat() {
                             <span className="chat__timestamp">
                               <div className="hidden">
                                 {
-                                //   (extramin =
-                                //     parseInt(
-                                //       String(
-                                //         new Date(
-                                //           e.timestamp?.toDate()
-                                //         ).toUTCString()
-                                //       ).slice(20, 22)
-                                //     ) +
-                                //       parseInt(GMTminutes) >
-                                //     60
-                                //       ? (parseInt(
-                                //           String(
-                                //             new Date(
-                                //               e.timestamp?.toDate()
-                                //             ).toUTCString()
-                                //           ).slice(20, 22)
-                                //         ) +
-                                //           parseInt(GMTminutes)) %
-                                //         60
-                                //       : 0)
-                                // }
-
-                                // {
-                                //   (minutes =
-                                //     parseInt(
-                                //       String(
-                                //         new Date(
-                                //           e.timestamp?.toDate()
-                                //         ).toUTCString()
-                                //       ).slice(20, 22)
-                                //     ) +
-                                //       parseInt(GMTminutes) +
-                                //       extramin -
-                                //       fix >
-                                //     60
-                                //       ? (parseInt(
-                                //           String(
-                                //             new Date(
-                                //               e.timestamp?.toDate()
-                                //             ).toUTCString()
-                                //           ).slice(20, 22)
-                                //         ) +
-                                //           parseInt(GMTminutes) +
-                                //           extramin -
-                                //           fix) %
-                                //         60
-                                //       : parseInt(
-                                //           String(
-                                //             new Date(
-                                //               e.timestamp?.toDate()
-                                //             ).toUTCString()
-                                //           ).slice(20, 22)
-                                //         ) +
-                                //         parseInt(GMTminutes) +
-                                //         extramin -
-                                //         fix)
-                                };
-                                {/* {(hour = extramin > 0 ? 1 : 0)} */}
+                                  (extramin =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(20, 22)
+                                    ) +
+                                      parseInt(GMTminutes) >
+                                    60
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                          parseInt(GMTminutes)) %
+                                        60
+                                      : 0)
+                                }
 
                                 {
-                                  // (hourly =
-                                  //   parseInt(
-                                  //     String(
-                                  //       new Date(
-                                  //         e.timestamp?.toDate()
-                                  //       ).toUTCString()
-                                  //     ).slice(17, 19)
-                                  //   ) +
-                                  //     hour +
-                                  //     parseInt(clientGMT) >
-                                  //   24
-                                  //     ? (parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(17, 19)
-                                  //       ) +
-                                  //         hour +
-                                  //         parseInt(clientGMT)) %
-                                  //       24
-                                  //     : parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(17, 19)
-                                  //       ) +
-                                  //       hour +
-                                  //       parseInt(clientGMT))
+                                  (minutes =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(20, 22)
+                                    ) +
+                                      parseInt(GMTminutes) +
+                                      extramin -
+                                      fix >
+                                    60
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                          parseInt(GMTminutes) +
+                                          extramin -
+                                          fix) %
+                                        60
+                                      : parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                        parseInt(GMTminutes) +
+                                        extramin -
+                                        fix)
+                                }
+                                {(hour = extramin > 0 ? 1 : 0)}
+
+                                {
+                                  (hourly =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(17, 19)
+                                    ) +
+                                      hour +
+                                      parseInt(clientGMT) <
+                                    0
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(17, 19)
+                                        ) +
+                                          hour +
+                                          parseInt(clientGMT)) +
+                                        24
+                                      : parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(17, 19)
+                                        ) +
+                                        hour +
+                                        parseInt(clientGMT))
                                 }
                               </div>
-                              {
-                                "4"
-                              /* {hourly ? hourly % 12 : "00"} */}
+                              {hourly ? hourly % 12 : "00"}
                               {" : "}
-                              {
-                                "23"
-                              /* {minutes !== 0
+                              {minutes !== 0
                                 ? minutes < 10
                                   ? "0" + minutes
                                   : minutes
-                                : "00"} */
-                                }
-                              {
-                                "PM"
-                              /* {hourly > 12 ? " PM" : " AM"} */
-                              }
+                                : "00"}
+                              {hourly > 12 ? " PM" : " AM"}
                             </span>
                           </p>
                         </>
@@ -573,115 +544,106 @@ function Chat() {
                           <span className="chat__timestamp">
                             <div className="hidden">
                               {
-                                // (extramin =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(20, 22)
-                                //   ) +
-                                //     parseInt(GMTminutes) >
-                                //   60
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //         parseInt(GMTminutes)) %
-                                //       60
-                                //     : 0)
+                                (extramin =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(20, 22)
+                                  ) +
+                                    parseInt(GMTminutes) >
+                                  60
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                        parseInt(GMTminutes)) %
+                                      60
+                                    : 0)
                               }
 
                               {
-                                // (minutes =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(20, 22)
-                                //   ) +
-                                //     parseInt(GMTminutes) +
-                                //     extramin -
-                                //     fix >
-                                //   60
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //         parseInt(GMTminutes) +
-                                //         extramin -
-                                //         fix) %
-                                //       60
-                                //     : parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //       parseInt(GMTminutes) +
-                                //       extramin -
-                                //       fix)
+                                (minutes =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(20, 22)
+                                  ) +
+                                    parseInt(GMTminutes) +
+                                    extramin -
+                                    fix >
+                                  60
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                        parseInt(GMTminutes) +
+                                        extramin -
+                                        fix) %
+                                      60
+                                    : parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                      parseInt(GMTminutes) +
+                                      extramin -
+                                      fix)
                               }
-                              {/* {(hour = extramin > 0 ? 1 : 0)} */}
+                              {(hour = extramin > 0 ? 1 : 0)}
 
                               {
-                                // (hourly =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(17, 19)
-                                //   ) +
-                                //     hour +
-                                //     parseInt(clientGMT) >
-                                //   24
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(17, 19)
-                                //       ) +
-                                //         hour +
-                                //         parseInt(clientGMT)) %
-                                //       24
-                                //     : parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(17, 19)
-                                //       ) +
-                                //       hour +
-                                //       parseInt(clientGMT))
+                                (hourly =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(17, 19)
+                                  ) +
+                                    hour +
+                                    parseInt(clientGMT) <
+                                  0
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(17, 19)
+                                      ) +
+                                        hour +
+                                        parseInt(clientGMT)) +
+                                      24
+                                    : parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(17, 19)
+                                      ) +
+                                      hour +
+                                      parseInt(clientGMT))
                               }
                             </div>
-                            {
-                            "4"
-                            /* {hourly ? hourly % 12 : "00"} */
-                            }
+                            {hourly ? hourly % 12 : "00"}
                             {" : "}
-                            {
-                              "22"
-                            /* {minutes !== 0
+                            {minutes !== 0
                               ? minutes < 10
                                 ? "0" + minutes
                                 : minutes
-                              : "00"} */
-                              }
-                            {
-                              "PM"
-                            /* {hourly > 12 ? " PM" : " AM"} */
-                            }
+                              : "00"}
+                            {hourly > 12 ? " PM" : " AM"}
                           </span>
                         </p>
                       )
@@ -775,12 +737,10 @@ function Chat() {
               <p className="header__lastSeen">
                 last seen{" "}
                 {messages.length !== 0
-                  ? "Yesterday"
-                  // ? String(
-                  //     messages[messages.length - 1].timestamp
-                  //       ?.toDate()
-                  //       .toUTCString()
-                  //   ).slice(0, 22)
+                  ? String(
+                    new Date(
+                      messages[messages.length - 1].timestamp)
+                    ).slice(0, 11)
                   : "Loading"}
               </p>
             </div>
@@ -810,18 +770,15 @@ function Chat() {
                           Object.keys(item) != undefined ? (
                             <div className="chat__body__daystamp">
                               <p className="chat__body__daystamp__title">
-                                
-                                {
-                                ""
-                                 /* {parseInt(
+                                {parseInt(
                                   String(Object.keys(item)).slice(0, 2)
                                 ) == parseInt(String(new Date().getDate()))
                                   ? "TODAY"
-                                  : Object.keys(item)} */}
+                                  : Object.keys(item)}
                               </p>
                             </div>
                           ) : (
-                            "used to be null"
+                            ""
                           )}
                           <p
                             className={`chat__messages ${
@@ -842,113 +799,106 @@ function Chat() {
                             <span className="chat__timestamp">
                               <div className="hidden">
                                 {
-                                  // (extramin =
-                                  //   parseInt(
-                                  //     String(
-                                  //       new Date(
-                                  //         e.timestamp?.toDate()
-                                  //       ).toUTCString()
-                                  //     ).slice(20, 22)
-                                  //   ) +
-                                  //     parseInt(GMTminutes) >
-                                  //   60
-                                  //     ? (parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(20, 22)
-                                  //       ) +
-                                  //         parseInt(GMTminutes)) %
-                                  //       60
-                                  //     : 0)
+                                  (extramin =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(20, 22)
+                                    ) +
+                                      parseInt(GMTminutes) >
+                                    60
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                          parseInt(GMTminutes)) %
+                                        60
+                                      : 0)
                                 }
 
                                 {
-                                  // (minutes =
-                                  //   parseInt(
-                                  //     String(
-                                  //       new Date(
-                                  //         e.timestamp?.toDate()
-                                  //       ).toUTCString()
-                                  //     ).slice(20, 22)
-                                  //   ) +
-                                  //     parseInt(GMTminutes) +
-                                  //     extramin -
-                                  //     fix >
-                                  //   60
-                                  //     ? (parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(20, 22)
-                                  //       ) +
-                                  //         parseInt(GMTminutes) +
-                                  //         extramin -
-                                  //         fix) %
-                                  //       60
-                                  //     : parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(20, 22)
-                                  //       ) +
-                                  //       parseInt(GMTminutes) +
-                                  //       extramin -
-                                  //       fix)
+                                  (minutes =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(20, 22)
+                                    ) +
+                                      parseInt(GMTminutes) +
+                                      extramin -
+                                      fix >
+                                    60
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                          parseInt(GMTminutes) +
+                                          extramin -
+                                          fix) %
+                                        60
+                                      : parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(20, 22)
+                                        ) +
+                                        parseInt(GMTminutes) +
+                                        extramin -
+                                        fix)
                                 }
-                                {/* {(hour = extramin > 0 ? 1 : 0)} */}
+                                {(hour = extramin > 0 ? 1 : 0)}
 
                                 {
-                                  // (hourly =
-                                  //   parseInt(
-                                  //     String(
-                                  //       new Date(
-                                  //         e.timestamp?.toDate()
-                                  //       ).toUTCString()
-                                  //     ).slice(17, 19)
-                                  //   ) +
-                                  //     hour +
-                                  //     parseInt(clientGMT) >
-                                  //   24
-                                  //     ? (parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(17, 19)
-                                  //       ) +
-                                  //         hour +
-                                  //         parseInt(clientGMT)) %
-                                  //       24
-                                  //     : parseInt(
-                                  //         String(
-                                  //           new Date(
-                                  //             e.timestamp?.toDate()
-                                  //           ).toUTCString()
-                                  //         ).slice(17, 19)
-                                  //       ) +
-                                  //       hour +
-                                  //       parseInt(clientGMT))
+                                  (hourly =
+                                    parseInt(
+                                      String(
+                                        new Date(
+                                          e.timestamp
+                                        ).toUTCString()
+                                      ).slice(17, 19)
+                                    ) +
+                                      hour +
+                                      parseInt(clientGMT) <
+                                    0
+                                      ? (parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(17, 19)
+                                        ) +
+                                          hour +
+                                          parseInt(clientGMT)) +
+                                        24
+                                      : parseInt(
+                                          String(
+                                            new Date(
+                                              e.timestamp
+                                            ).toUTCString()
+                                          ).slice(17, 19)
+                                        ) +
+                                        hour +
+                                        parseInt(clientGMT))
                                 }
                               </div>
-                              {/* {hourly ? hourly % 12 : "00"} */
-                                "4"
-                              }
+                              {hourly ? hourly % 12 : "00"}
                               {" : "}
-                              {
-                                "21"
-                              /* {minutes !== 0
+                              {minutes !== 0
                                 ? minutes < 10
                                   ? "0" + minutes
                                   : minutes
-                                : "00"} */}
-                              {
-                              /* {hourly > 12 ? " PM" : " AM"} */
-                                "PM"
-                              }
+                                : "00"}
+                              {hourly > 12 ? " PM" : " AM"}
                             </span>
                           </p>
                         </>
@@ -965,115 +915,106 @@ function Chat() {
                           <span className="chat__timestamp">
                             <div className="hidden">
                               {
-
-                                // (extramin =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(20, 22)
-                                //   ) +
-                                //     parseInt(GMTminutes) >
-                                //   60
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //         parseInt(GMTminutes)) %
-                                //       60
-                                //     : 0)
+                                (extramin =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(20, 22)
+                                  ) +
+                                    parseInt(GMTminutes) >
+                                  60
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                        parseInt(GMTminutes)) %
+                                      60
+                                    : 0)
                               }
 
                               {
-                                // (minutes =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(20, 22)
-                                //   ) +
-                                //     parseInt(GMTminutes) +
-                                //     extramin -
-                                //     fix >
-                                //   60
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //         parseInt(GMTminutes) +
-                                //         extramin -
-                                //         fix) %
-                                //       60
-                                //     : parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(20, 22)
-                                //       ) +
-                                //       parseInt(GMTminutes) +
-                                //       extramin -
-                                //       fix)
+                                (minutes =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(20, 22)
+                                  ) +
+                                    parseInt(GMTminutes) +
+                                    extramin -
+                                    fix >
+                                  60
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                        parseInt(GMTminutes) +
+                                        extramin -
+                                        fix) %
+                                      60
+                                    : parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(20, 22)
+                                      ) +
+                                      parseInt(GMTminutes) +
+                                      extramin -
+                                      fix)
                               }
-                              {/* {(hour = extramin > 0 ? 1 : 0)} */}
+                              {(hour = extramin > 0 ? 1 : 0)}
 
                               {
-                                // (hourly =
-                                //   parseInt(
-                                //     String(
-                                //       new Date(
-                                //         e.timestamp?.toDate()
-                                //       ).toUTCString()
-                                //     ).slice(17, 19)
-                                //   ) +
-                                //     hour +
-                                //     parseInt(clientGMT) >
-                                //   24
-                                //     ? (parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(17, 19)
-                                //       ) +
-                                //         hour +
-                                //         parseInt(clientGMT)) %
-                                //       24
-                                //     : parseInt(
-                                //         String(
-                                //           new Date(
-                                //             e.timestamp?.toDate()
-                                //           ).toUTCString()
-                                //         ).slice(17, 19)
-                                //       ) +
-                                //       hour +
-                                //       parseInt(clientGMT))
+                                (hourly =
+                                  parseInt(
+                                    String(
+                                      new Date(
+                                        e.timestamp
+                                      ).toUTCString()
+                                    ).slice(17, 19)
+                                  ) +
+                                    hour +
+                                    parseInt(clientGMT) < 
+                                  0
+                                    ? (parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(17, 19)
+                                      ) +
+                                        hour +
+                                        parseInt(clientGMT)) +
+                                      24
+                                    : parseInt(
+                                        String(
+                                          new Date(
+                                            e.timestamp
+                                          ).toUTCString()
+                                        ).slice(17, 19)
+                                      ) +
+                                      hour +
+                                      parseInt(clientGMT))
                               }
                             </div>
-                            { "4"
-                            // hourly ? hourly % 12 : "00"
-                            }
+                            {hourly ? hourly % 12 : "00"}
                             {" : "}
-                            {
-                              /* {minutes !== 0
+                            {minutes !== 0
                               ? minutes < 10
                                 ? "0" + minutes
                                 : minutes
-                              : "00"} */
-                              "20"
-                              }
-                            {
-                            "PM"
-                            // hourly > 12 ? " PM" : " AM"
-                            }
+                              : "00"}
+                            {hourly > 12 ? " PM" : " AM"}
                           </span>
                         </p>
                       )

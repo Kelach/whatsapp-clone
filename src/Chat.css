@@ -22,7 +22,6 @@
 
 .chat__headerInfo p {
     color: gray;
-    display: none;
 }
 
 
@@ -47,7 +46,6 @@
 }
 
 .chat__timestamp {
-    /* display: None; */
     margin-left: 10px;
     font-size: xx-small;
 }
@@ -75,7 +73,6 @@
 }
 
 .chat__body__daystamp {
-    display: none;
     background-color: #bbffe8;
     position: sticky;
     z-index: 9;

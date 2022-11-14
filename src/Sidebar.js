@@ -38,7 +38,7 @@ function Sidebar() {
   const exitApp = async () => {
     //three0
     alert("logging out inna bit");
-    Auth.logout();
+    await Auth.logout();
     window.location.reload();
     //three0
     
@@ -98,7 +98,7 @@ function Sidebar() {
     localStorage.getItem("photoURL") !== ""
       ? localStorage.getItem("photoURL")
       : null;
-  const displayName = localStorage.getItem("displayName");
+  const displayName = Auth.getAccountId().split('.')[0];
 
   return (
     <>
